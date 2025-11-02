@@ -3,10 +3,16 @@
  * Provides error handling utilities for React components
  */
 
-import { useCallback } from 'react';
+import * as React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { errorHandler, AppError, ErrorType, ErrorSeverity } from '@/utils/errorHandler';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/config';
+import {
+  errorHandler,
+  AppError,
+  ErrorType,
+  ErrorSeverity,
+  createError as createErrorFactory,
+} from '@/utils/errorHandler';
+import { ERROR_MESSAGES } from '@/config';
 
 interface UseErrorHandlerOptions {
   showToast?: boolean;
@@ -22,7 +28,7 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
     onError,
   } = options;
 
-  const handleError = useCallback((
+  const handleError = React.useCallback((
     error: any,
     context?: {
       component?: string;
@@ -52,7 +58,7 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
     return appError;
   }, [toast, showToast, logError, onError]);
 
-  const handleSuccess = useCallback((message: string) => {
+  const handleSuccess = React.useCallback((message: string) => {
     toast({
       title: 'Success',
       description: message,
@@ -60,7 +66,7 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
     });
   }, [toast]);
 
-  const handleAsync = useCallback(async <T>(
+  const handleAsync = React.useCallback(async <T>(
     asyncFn: () => Promise<T>,
     context?: {
       component?: string;
@@ -76,7 +82,7 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
     }
   }, [handleError]);
 
-  const createError = useCallback((
+  const createCustomError = React.useCallback((
     message: string,
     type: ErrorType = ErrorType.UNKNOWN,
     severity: ErrorSeverity = ErrorSeverity.MEDIUM
@@ -88,18 +94,18 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
     handleError,
     handleSuccess,
     handleAsync,
-    createError,
+    createError: createCustomError,
     // Convenience methods for common error types
-    handleNetworkError: (error: any, context?: any) => 
-      handleError(errorHandler.createNetworkError(), context),
-    handleAuthError: (error: any, context?: any) => 
-      handleError(errorHandler.createAuthError(), context),
-    handleValidationError: (error: any, context?: any) => 
-      handleError(errorHandler.createValidationError(), context),
-    handleNotFoundError: (error: any, context?: any) => 
-      handleError(errorHandler.createNotFoundError(), context),
-    handleServerError: (error: any, context?: any) => 
-      handleError(errorHandler.createServerError(), context),
+    handleNetworkError: (error?: any, context?: any) =>
+      handleError(error ?? createErrorFactory.network(), context),
+    handleAuthError: (error?: any, context?: any) =>
+      handleError(error ?? createErrorFactory.auth(), context),
+    handleValidationError: (error?: any, context?: any) =>
+      handleError(error ?? createErrorFactory.validation(), context),
+    handleNotFoundError: (error?: any, context?: any) =>
+      handleError(error ?? createErrorFactory.notFound(), context),
+    handleServerError: (error?: any, context?: any) =>
+      handleError(error ?? createErrorFactory.server(), context),
   };
 };
 

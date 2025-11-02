@@ -2,6 +2,7 @@
 // This helps avoid runtime errors where vendor bundles access
 // unstable_scheduleCallback before a scheduler implementation exists.
 import './react-scheduler-fix.ts'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
@@ -63,9 +64,11 @@ try {
   
   const root = createRoot(rootElement);
   root.render(
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>
   );
   console.log('✅ App rendered successfully');
 } catch (error) {
